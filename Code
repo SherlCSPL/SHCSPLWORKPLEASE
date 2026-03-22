@@ -1,0 +1,398 @@
+PennController.Sequence("checkMono", "checkMono2", "consent", "preloadedcheck","counter","StoryInstructions1","StoryInstructions2", "StoryInstructions3","StoryInstructions4","StoryInstructions5","StoryInstructions6","StoryInstructions7","task3", "ExperienceQ1", "MonoLangQ","ExperienceQ2","SleepQs1", "SleepQs2", "SleepQs3","send", "debrief");
+PennController.ResetPrefix(null)
+PennController.SendResults( "send" );
+PennController.DebugOff();
+
+jQuery.prototype.on = function(...args) { return jQuery.prototype.bind.apply(this, args); }
+jQuery.prototype.prop = function(...args) { return jQuery.prototype.attr.apply(this, args); }
+
+newTrial("checkMono",
+    newText("<b>Are you an English-French bilingual?</b>").print(),
+    newScale("mono", 'Yes', 'No').settings.radio().vertical().settings.labelsPosition("right").print().wait().log(),
+    newVar("monoQ").global().set(getScale("mono"))
+).log( "participantID", PennController.GetURLParameter("id") )
+.log("monoQ", getVar("monoQ"));
+
+newTrial("checkMono2",
+ getVar("monoQ").test.is('Yes')
+        .failure(newText("Please use the other link on SONA for monolinguals, this is the bilingual version.").print(),
+         newTimer("dummy1", 10)
+            .wait())
+        .success(newButton("Great!! Click to continue to consent").print().wait())
+);
+
+PennController( "consent" ,
+        defaultText
+            .print()
+        ,
+        newHtml("intro", "realinformedconsent.html")
+            .print()
+        ,
+         newText("Thank you to Salig et al. for allowing the use of their materials.<br/><br/>")
+        .center()
+        .print()
+        ,
+        newButton("By clicking this button I indicate my consent")
+            .center()
+            .print()
+            .wait(
+            ),
+            newText("<br/>")
+            ,
+            newText("<br/>")
+            
+)
+.log( "participantID", PennController.GetURLParameter("id") )
+;
+SetCounter("counter", "inc", 1);
+
+PennController("StoryInstructions1",
+    newText("You will now be given instructions for the attention scale, followed by hearing the stories!<br/><br/>")
+        .center()
+        .print()
+    ,
+    newText("As you listen to the stories, you will look at a cross on the screen that looks like this: + <br/><br/>")
+   .center()
+        .print()
+    ,
+        newText("I appreciate your patience as it may take a minute for the files to load. Thank you! <br/><br/>")
+        .center()
+        .print()
+    ,
+    newButton("Continue")
+    .center()
+    .print().wait()
+    );
+    
+PennController("StoryInstructions2",
+    newText("Occasionally, the story will pause, and you will see a sliding scale that looks like this:").print()
+    ,
+    newImage("samplescale2.jpg").print()
+    ,
+    newText("You will use this scale to indicate <b> how on-task or off-task your attention was immediately before it appeared.</b></p>").print()
+    ,
+    newText("For example, if right before the scale appeared, you were 100% on task and fully attending to the story, you move the dot all the way up to the happy green face.</p>").print()
+    ,
+        newText("If your attention was split evenly between listening to the story and something else, move the dot to the yellow face in the middle.</p>").print()
+    ,
+    newText("If you were completely off task and not listening to the story, move the dot towards the red face.</p>").print()
+    ,
+        newText("<p>It will not negatively influence the study, please try to respond honestly about how focused you were before the scale appeared.</p>").print()
+    ,
+    newText("When the story pauses and the scale appears, you will have about <b>10 seconds to respond</b> before the story continues.</p>").print()
+    ,
+    newText("Once you respond, you will press an arrow button to continue.</p>").print()
+    ,
+    newButton("Let's give it a go!!").print().wait()
+);
+
+PennController("StoryInstructions3",
+    newText("Let's practice!</p>").print()
+    ,
+    newText("Imagine you are NOT paying attention when the scale appears. On the next page, practice using the scale to indicate that you were NOT paying attention to the story (you were off-task) just before the scale appeared.</p>").print()
+    ,
+    newButton("Continue").print().wait()
+);
+
+PennController("StoryInstructions4",
+newVar("praticeselected").set("no"),
+newCanvas("ProbePractice", 100, 500)
+                    .add("left at 0%","middle at 5%",newImage("OnTask.jpg").size(40,40))
+                    .add("left at 0%", "middle at 50%", newImage("OffTaskAware.jpg").size(40,40))
+                    .add("left at 45%", "middle at 50%", newScale("practiceprobe", 100).slider().vertical().size(90,480))
+                    .add("left at 0%", "middle at 95%", newImage("OffTaskUnaware.jpg").size(40,40))
+                    .print(),
+                getScale("practiceprobe").callback(getTimer("waitSelector").stop())
+                ,
+                newTimer("waitSelector", 10000) // 10 seconds until time-out to advance to --> button
+                    .start()
+                    .wait()
+                ,
+                getCanvas("ProbePractice")
+                    .add("left at 100%", "middle at 100%",newButton("→").print().callback(getTimer("waitSelector2").stop()))
+                ,
+                newTimer("waitSelector2", 5000) ///5 seconds after first answer to adjust answer
+                    .start()
+                    .wait()
+                ,
+                getScale("practiceprobe").test.selected()
+                .success(getVar("practiceselected").set("yes"))
+                ,
+                getScale("practiceprobe").log()
+).log("practiceselected", getVar("practiceselected")).log("participantID", PennController.GetURLParameter("id") );
+
+PennController("StoryInstructions5",
+    newText("<p>You should have slid the dot down towards the red face, to indicate that you were not paying attention to the story right before the scale appeared.</p>").print()
+    ,
+    newText("Remember, close to the green face means more attention towards the story. Close to the yellow face means your attention was split. Close to the red face means less attention to the story.").print()
+  ,
+     newText("<p>In the stories, <b> you may hear some French. We know that you are not a French speaker, and we don't expect you to understand French.</b></p>").print()
+    ,
+    newText("When you use the scale to indicate your attention, we want to know if you were on-task and paying attention to the story, even if parts of the story are in French and you can't understand those parts.").print()
+    ,
+    newText("Try your best, don't worry about not understanding these parts! Your SONA credits will not be influenced by low attention, please be as honest as possible!!</p>").print()
+    ,
+    newButton("Continue").print().wait()
+);
+
+CheckPreloaded("task3")
+    .label("preloadedcheck");
+
+Template("ACSfullBilingual_CS4lists_2026.csv", row =>
+    newTrial("task3",
+        newVar("probenum", row.ProbeNumber)
+        ,
+        newVar("TrialType", row.TrialType)
+        ,
+        newVar("probeselected").global().set("no")
+        ,
+        newVar("RT").global().set("0")
+        ,
+        getVar("probenum").test.is("1")
+            .success(
+                newText("text1","You are about to start listening to a new story.</p>").print()
+                ,
+                newText("text5","If you need to take a short break before beginning the story, do it now.</p>").print()
+                ,
+                newText("text2","Remember! Try your best to pay attention. </p> Stay seated at your computer, and keep your headphones on.</p><p>Look at the + symbol on screen as you listen.</p>").print()
+                ,
+                newText("text3","When you see a scale, you have 10 seconds to respond. Use scales to indicate how on-task (up, towards the green face) or off-task (down, towards the red face) you were right before the scale appeared. </p>").print()
+                ,
+                newText("text4","<b>Please report your level of attention truthfully!</b> It is critical for our research that you report your honest level of attention.</p>").print()
+                ,
+                newButton("Start!")
+                    .print()
+                    .wait()
+                    .remove()
+                ,
+                getText("text1").remove(),
+                getText("text2").remove(),
+                getText("text3").remove(),
+                getText("text4").remove(),
+                getText("text5").remove()
+                )
+        ,
+        getVar("probenum").test.is("25")
+            .success(
+                newText("text111","You are about to start listening to a new story.</p>").print()
+                ,
+                newText("text511","If you need to take a short break before beginning the story, do it now.</p>").print()
+                ,
+                newText("text211","Remember! Try your best to pay attention. </p> Stay seated at your computer, and keep your headphones on.</p><p>Look at the + symbol on screen as you listen.</p>").print()
+                ,
+                newText("text311","When you see a scale, you have 10 seconds to respond. Use scales to indicate how on-task (up, towards the green face) or off-task (down, towards the red face) you were right before the scale appeared. </p>").print()
+                ,
+                newText("text411","<b>Please report your level of attention truthfully!</b> It is critical for our research that you report your honest level of attention.</p>").print()
+                ,
+                newButton("Start")
+                    .print()
+                    .wait()
+                    .remove()
+                ,
+                getText("text111").remove(),
+                getText("text211").remove(),
+                getText("text311").remove(),
+                getText("text411").remove(),
+                getText("text511").remove()
+                )
+        ,
+        getVar("probenum").test.is("100")
+            .success(
+                newText("text100","Now you will answer some questions about the story you just listened to.</p>").print()
+                ,
+                newText("text101","Use the keyboard to select your answer (e.g., Press 'A' for answer A.)</p>").print()
+                ,
+                newText("text102","You will answer between 31 and 45 questions. We have alloted approximately 10 minutes for this part of the study.</p>").print()
+                ,
+                newText("text103","We recommend that you spend 20 seconds or less on each question.</p>").print()
+                ,
+                newButton("Begin")
+                    .print()
+                    .wait()
+                    .remove()
+                ,
+                getText("text100").remove(),
+                getText("text101").remove(),
+                getText("text102").remove(),
+                getText("text103").remove()
+                )
+        ,
+        getVar("TrialType").test.is("listen")
+            .success(
+                newAudio("story1", row.AudioLink)
+                ,
+                newCanvas("fixation", 200, 200)
+                    .center()
+                    .add("center at 50%", "middle at 50%", newText("+").settings.css("font-size",35))
+                    .print()
+                ,
+                getAudio("story1").play().wait()
+                ,
+                getCanvas("fixation").remove()
+                ,
+                getVar("RT").set( v => Date.now() )
+                ,
+                newCanvas("Canvasprobe", 100, 500)
+                    .add("left at 0%","middle at 5%",newImage("OnTask.jpg").size(40,40))
+                    .add("left at 0%", "middle at 50%", newImage("OffTaskAware.jpg").size(40,40))
+                    .add("left at 45%", "middle at 50%", newScale("attentionprobe", 100).slider().vertical().size(90,480))
+                    .add("left at 0%", "middle at 95%", newImage("OffTaskUnaware.jpg").size(40,40))
+                    .print(),
+                getScale("attentionprobe").callback(getTimer("waitSelector").stop())
+                ,
+                newTimer("waitSelector", 10000)
+                    .start()
+                    .wait()
+                ,
+                getCanvas("Canvasprobe")
+                    .add("left at 100%", "middle at 100%",newButton("→").print().callback(getTimer("waitSelector2").stop()))
+                ,
+                newTimer("waitSelector2", 5000) 
+                    .start()
+                    .wait()
+              ,
+              getScale("attentionprobe").log()
+              ,
+                getVar("RT").set( v => Date.now() - v )
+                ,
+                getScale("attentionprobe").test.selected()
+                .success(getVar("probeselected").set("yes"))
+                ,
+                getCanvas("Canvasprobe").remove()
+                )
+            .failure(
+                newCanvas("screen1", 800,600)
+                .center()
+                .print()
+                ,
+                getCanvas("screen1")
+                    .add("center at 50%", "middle at 10%", newText(row.QuestionStimuli))
+                    .add("center at 25%", "middle at 30%", newText("(A)"))
+                    .add("left at 30%", "middle at 30%", newText(row.Answer1))
+                    .add("center at 25%", "middle at 40%", newText("(B)"))
+                    .add("left at 30%", "middle at 40%", newText(row.Answer2))
+                    .add("center at 25%", "middle at 50%", newText("(C)"))
+                    .add("left at 30%", "middle at 50%", newText(row.Answer3))
+                    .add("center at 25%", "middle at 60%", newText("(D)"))
+                    .add("left at 30%", "middle at 60%", newText(row.Answer4))
+                    .add("center at 25%", "middle at 70%", newText("(E)"))
+                    .add("left at 30%", "middle at 70%", newText(row.Answer5))
+                    .print()
+                ,
+                getVar("RT").set( v => Date.now() )
+                ,
+                newKey("questionresponse","abcde")
+                    .log()
+                    .wait()
+                ,
+                getVar("RT").set( v => Date.now() - v )
+                ,
+                getCanvas("screen1").remove()
+                ,
+                getVar("probeselected").set("NA")
+                )
+        )
+.log("participantID", PennController.GetURLParameter("id") )
+.log("list", row.List)
+.log("story", row.Story)
+.log("trialtype", row.TrialType)
+.log("audiofile", row.AudioLink)
+.log("probenum", row.ProbeNumber)
+.log("probeselected", getVar("probeselected"))
+.log("sectionnum", row.SectionNumber)
+.log("lastline", row.LastLine)
+.log("lengthlines", row.LineLength)
+.log("lengthaudio", row.AudioLength)
+.log("langcontext", row.LangContext)
+.log("switchtype", row.SwitchType)
+.log("fillerCS", row.FillerCS)
+.log("questionnum", row.QuestionNumber)
+.log("questionstim", row.QuestionStimuli)
+.log("RT", getVar("RT"))
+.log("correctresponse", row.CorrectResponse)
+.log("ice", row.ICE)
+.log("infofromprobe", row.InfoDistanceFromProbe)
+.log("relevantsection", row.RelevantSection)
+.log("relseclangcontext", row.RelSecLangContext)
+.log("infocontext", row.InfoContext)
+.log("infolanguage", row.InfoLanguage)
+.log("relevantsent1", row.RelevantSentence1)
+.log("relevantsent2", row.RelevantSentence2)
+.log("relevantsent3", row.RelevantSentence3)
+);
+
+PennController("ExperienceQ1",
+    newText("You have completed the comprehension questions. You are close to being done!</p>").print(),
+    newText("On the next few pages, we will ask you a few short questions about your language experience and your experience in this study.</p>").print(), 
+    newButton("Continue").print().wait()
+);
+
+PennController("LangueQ1",
+    newText("<p><b>2) Please indicate your age</b></p>").print(),
+    newTextInput("age", " ").print().lines(1).log(),
+    newText("<p><b>3) Your level of attention was measured in this study, do you have any attention disorders that could potentially influence your attention level during this task?</p>").print(),
+    newScale("attmed", "Yes and I am currently taking medication meant to aid attention","Yes and I am not currently taking any medication","No, I do not","I would prefer not to disclose that information").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("<p><b>4) First language:").print(),
+    newScale("langue", "English","French","Other"," ").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("<p><b>5) Other languages you speak.</p>").print(),
+    newScale("otherlangue", " ").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("<p><b>6) Have you ever tried to learn French independently?</b></p>").print(),
+    newScale("indeplearn", "Yes","No").settings.radio().vertical().settings.labelsPosition("right").print().log(),
+    newText("<p><b>7) Was there a French program in your previous education institutions?</b> </p>").print(),
+    newScale("eduFRxp", "Yes","No").settings.radio().vertical().settings.labelsPosition("right").print().log(),
+    newText("<p><b>8) How would you rate the program (0= I was unable to learn much, if any, French, 5= The program was an excellent language learning resource)</p>").print(),
+    newScale("prograting", "1","2","3","4","5").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("<p><b>9) How long have you studied French (including any experience in core French/schooling programs)</b></p>").print(),
+    newScale("studyyears", "I’ve never studied French","Less than 6 months","Under 1 year","1 year","2 years","3 years","4 years","5 years","More than 5 years").settings.radio().vertical().settings.labelsPosition("right").print().log(),
+    newText("<p><b>10) Please describe your past language learning experience:</p>").print(),
+    newScale("pastxpwhere", "Familial/Friends","Education","Apps"," ").settings.radio().vertical().settings.labelsPosition("right").print().log(),
+    newButton("Continue").print().wait()
+).log("participantID", PennController.GetURLParameter("id"))
+;
+
+PennController("EnjoymentQs",
+    newText("Did you enjoy The Three Students story? (1= Not really, 5= Yes)</p>").print(),
+    newScale("enjoytristu", "1","2","3","4","5").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("Did you enjoy the story about the stolen emeralds?  (1= Not really, 5= Yes)</p>").print(),
+    newScale("enjoyemcr", "1","2","3","4","5").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("If you were to listen to the stories again what would be your preferred audio?</p>").print(),
+    newScale("csengpref", "English only","French only","A mixture of the two").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("One story included a mixture of French and English; was the mixing of these languages natural or did it seem disjointed/hard to follow? (1= hard to follow, 5= natural)</p>").print(),
+    newScale("csnatural", "1","2","3","4","5").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("Did you find the story with a video or the story with no video more engaging?</p>").print(),
+    newScale("videoengage", "I did not notice any difference","The gestures were engaging","I found the gestures distracting").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("Did you think the speaker only spoke in a monotone voice or was there variation to how they spoke (their tone/pitch/speaking voice changed) in the audio-only story compared to the video??</p>").print(),
+    newScale("monotoneaudio", "I did not notice a difference","The speaker only focused on speaking the words","The speaker varied how they spoke").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("Do you think the story with the video featuring the speaker smiling made the story more memorable compared to the audio story?</p>").print(),
+    newScale("smilevideo", "I did not notice a difference","The speaker with a neutral expression was more memorable","The smiling speaker was more memorable").settings.radio().settings.labelsPosition("top").print().log(),
+    newText("Did you think the speaker only spoke in a monotone voice or was there variation to how they spoke (their tone/pitch/speaking voice changed) in the video story compared to the audio?</p>").print(),
+    newScale("monotonevid", "I did not notice a difference","The speaker only focused on speaking the words","The speaker varied how they spoke").settings.radio().settings.labelsPosition("top").print().log(),
+    newText(" ").print(),
+    newButton("Continue").print().wait()
+).log("participantID", PennController.GetURLParameter("id"))
+;
+
+PennController("SleepQs1",
+    newText("Do you suffer from any sort of sleep disorder (insomnia, sleep apnea, etc.)?").print(),
+    newScale("sleepdis", "Yes","No","I would prefer to not disclose that information").settings.radio().vertical().settings.labelsPosition("right").print().log(),
+    newText("Thinking back to your sleep last night, how would you rate the quality of your rest? (1= I did not sleep well at all, 5= I am well rested) (Poor sleep could include or be caused by: a struggle to fall asleep and/or stay asleep, sickness, pain, noises from shared spaces/neighbours, etc.)").print(),
+    newScale("sleepquality", "1","2","3","4","5","6","7").settings.radio().settings.labelsPosition("top").print().log(),
+    newButton("Continue").print().wait()
+).log("participantID", PennController.GetURLParameter("id"))
+;
+
+PennController( "debrief" ,
+     newHtml("intro", "realdebriefinginfo.html")
+      .print()
+ ,
+    newVar("link")
+         .set(PennController.GetURLParameter("id"))
+         .set( v => "<p><a href='https://umpsychology.sona-systems.com/services/SonaAPI.svc/WebstudyCredit?experiment_id=1870&credit_token=0e8bdf7adb2941c1861536ba7545795e&survey_code="+v+"'>Use this link to submit your responses and get SONA credit</a></p>" )
+     ,
+    newText()
+         .text( getVar("link") ) 
+         .print()
+    ,
+        newTimer("dummy", 10)
+            .wait() // This will wait forever
+);
